@@ -1,0 +1,7 @@
+runtime: nodejs20
+env: standard
+
+
+env_variables:
+  MONGO_URI: "mongodb+srv://Cluster83708:Kabeer12345@cluster83708.9gux4ju.mongodb.net/Cluster83708?retryWrites=true&w=majority&appName=Cluster83708"
+  NODE_ENV: "production"
