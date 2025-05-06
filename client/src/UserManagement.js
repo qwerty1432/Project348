@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 
 function UserManagement() {
+  const API = process.env.REACT_APP_API_URL || "http://localhost:5001";
+
   const [users, setUsers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -9,7 +11,7 @@ function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5001/api/users");
+      const res = await fetch(`${API}/api/users`);
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -19,29 +21,31 @@ function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [API]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email) return;
+
     try {
+      let res, result;
       if (editingUser) {
-        const res = await fetch(`http://localhost:5001/api/users/${editingUser._id}`, {
+        res = await fetch(`${API}/api/users/${editingUser._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email }),
         });
-        const updatedUser = await res.json();
-        setUsers(users.map((user) => (user._id === updatedUser._id ? updatedUser : user)));
+        result = await res.json();
+        setUsers(users.map((u) => (u._id === result._id ? result : u)));
         setEditingUser(null);
       } else {
-        const res = await fetch("http://localhost:5001/api/users", {
+        res = await fetch(`${API}/api/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email }),
         });
-        const newUser = await res.json();
-        setUsers([...users, newUser]);
+        result = await res.json();
+        setUsers([...users, result]);
       }
       setName("");
       setEmail("");
@@ -50,12 +54,10 @@ function UserManagement() {
     }
   };
 
-  const handleDelete = async (userId) => {
+  const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:5001/api/users/${userId}`, {
-        method: "DELETE",
-      });
-      setUsers(users.filter((user) => user._id !== userId));
+      await fetch(`${API}/api/users/${id}`, { method: "DELETE" });
+      setUsers(users.filter((u) => u._id !== id));
     } catch (error) {
       console.error("Error deleting user:", error);
     }
@@ -77,21 +79,36 @@ function UserManagement() {
     <div className="container my-4">
       <div className="card p-4">
         <h1 className="mb-3">User Management</h1>
+
         <ul className="list-group mb-3">
           {users.map((user) => (
-            <li key={user._id} className="list-group-item d-flex justify-content-between align-items-center">
-              {user.name} - {user.email}
+            <li
+              key={user._id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              {user.name} — {user.email}
               <div>
-                <button className="btn btn-sm btn-primary mr-2" onClick={() => handleEdit(user)}>Edit</button>
-                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user._id)}>Delete</button>
+                <button
+                  className="btn btn-sm btn-primary mr-2"
+                  onClick={() => handleEdit(user)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDelete(user._id)}
+                >
+                  Delete
+                </button>
               </div>
             </li>
           ))}
         </ul>
+
         <h2>{editingUser ? "Edit User" : "Add New User"}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Name: </label>
+            <label>Name:</label>
             <input
               type="text"
               className="form-control"
@@ -101,7 +118,7 @@ function UserManagement() {
             />
           </div>
           <div className="form-group">
-            <label>Email: </label>
+            <label>Email:</label>
             <input
               type="email"
               className="form-control"
@@ -114,7 +131,11 @@ function UserManagement() {
             {editingUser ? "Update User" : "Add User"}
           </button>
           {editingUser && (
-            <button type="button" className="btn btn-secondary ml-2" onClick={cancelEdit}>
+            <button
+              type="button"
+              className="btn btn-secondary ml-2"
+              onClick={cancelEdit}
+            >
               Cancel
             </button>
           )}

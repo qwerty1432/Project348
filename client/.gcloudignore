@@ -1,0 +1,9 @@
+# existing entries…
+__pycache__/
+/setup.cfg
+
+# ————————————————
+# Skip node modules and logs to speed up Cloud Build
+node_modules/
+*.log
+.DS_Store

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 
 function ActivityReport() {
+  const API = process.env.REACT_APP_API_URL || "http://localhost:5001";
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedActivity, setSelectedActivity] = useState("");
@@ -12,7 +14,7 @@ function ActivityReport() {
   useEffect(() => {
     async function fetchActivityNames() {
       try {
-        const res = await fetch("http://localhost:5001/api/reports/activity-names");
+        const res = await fetch(`${API}/api/reports/activity-names`);
         const data = await res.json();
         setActivityNames(data);
       } catch (error) {
@@ -20,16 +22,17 @@ function ActivityReport() {
       }
     }
     fetchActivityNames();
-  }, []);
+  }, [API]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
-    if (selectedActivity) params.append("name", selectedActivity); // key "name" matches the field in the schema
+    if (endDate)   params.append("endDate", endDate);
+    if (selectedActivity) params.append("name", selectedActivity);
+
     try {
-      const res = await fetch(`http://localhost:5001/api/reports/activities?${params.toString()}`);
+      const res = await fetch(`${API}/api/reports/activities?${params.toString()}`);
       const data = await res.json();
       setReport(data);
     } catch (error) {
@@ -75,15 +78,18 @@ function ActivityReport() {
               onChange={(e) => setSelectedActivity(e.target.value)}
             >
               <option value="">Select an activity</option>
-              {activityNames.map((act, index) => (
-                <option key={index} value={act}>
+              {activityNames.map((act, idx) => (
+                <option key={idx} value={act}>
                   {act}
                 </option>
               ))}
             </select>
           </div>
-          <button type="submit" className="btn btn-primary">Generate Activity Report</button>
+          <button type="submit" className="btn btn-primary">
+            Generate Activity Report
+          </button>
         </form>
+
         {report && report.length > 0 ? (
           <div>
             <h2>Report Results:</h2>

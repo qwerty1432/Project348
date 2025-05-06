@@ -2,18 +2,20 @@
 import React, { useState, useEffect } from "react";
 
 function TripReport() {
+  const API = process.env.REACT_APP_API_URL || "http://localhost:5001";
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedDestination, setSelectedDestination] = useState("");
   const [destinations, setDestinations] = useState([]);
-  const [activityFilter, setActivityFilter] = useState(""); // Optional filter
+  const [activityFilter, setActivityFilter] = useState("");
   const [report, setReport] = useState(null);
 
   // Fetch distinct destinations for the dropdown
   useEffect(() => {
     async function fetchDestinations() {
       try {
-        const res = await fetch("http://localhost:5001/api/reports/trip-destinations");
+        const res = await fetch(`${API}/api/reports/trip-destinations`);
         const data = await res.json();
         setDestinations(data);
       } catch (error) {
@@ -21,17 +23,18 @@ function TripReport() {
       }
     }
     fetchDestinations();
-  }, []);
+  }, [API]);
 
   const handleReportSubmit = async (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+    if (startDate)           params.append("startDate", startDate);
+    if (endDate)             params.append("endDate", endDate);
     if (selectedDestination) params.append("destination", selectedDestination);
-    if (activityFilter) params.append("activity", activityFilter);
+    if (activityFilter)      params.append("activity", activityFilter);
+
     try {
-      const res = await fetch(`http://localhost:5001/api/reports/trips?${params.toString()}`);
+      const res = await fetch(`${API}/api/reports/trips?${params.toString()}`);
       const data = await res.json();
       setReport(data);
     } catch (error) {
@@ -77,8 +80,8 @@ function TripReport() {
               onChange={(e) => setSelectedDestination(e.target.value)}
             >
               <option value="">Select a destination</option>
-              {destinations.map((dest, index) => (
-                <option key={index} value={dest}>
+              {destinations.map((dest, idx) => (
+                <option key={idx} value={dest}>
                   {dest}
                 </option>
               ))}
@@ -94,8 +97,11 @@ function TripReport() {
               placeholder="Enter activity name"
             />
           </div>
-          <button type="submit" className="btn btn-primary">Generate Report</button>
+          <button type="submit" className="btn btn-primary">
+            Generate Report
+          </button>
         </form>
+
         {report && report.length > 0 ? (
           <div>
             <h2>Report Results:</h2>
@@ -104,22 +110,16 @@ function TripReport() {
                 <li key={trip._id} className="list-group-item">
                   <h4>{trip.title}</h4>
                   <p><strong>Destination:</strong> {trip.destination}</p>
-                  <p>
-                    <strong>Start Date:</strong> {new Date(trip.start_date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>End Date:</strong> {new Date(trip.end_date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Duration:</strong> {trip.durationDays ? trip.durationDays.toFixed(2) : "N/A"} days
-                  </p>
-                  {trip.activities && trip.activities.length > 0 && (
+                  <p><strong>Start Date:</strong> {new Date(trip.start_date).toLocaleDateString()}</p>
+                  <p><strong>End Date:</strong> {new Date(trip.end_date).toLocaleDateString()}</p>
+                  <p><strong>Duration:</strong> {trip.durationDays?.toFixed(2) || "N/A"} days</p>
+                  {trip.activities?.length > 0 && (
                     <div>
                       <strong>Activities:</strong>
                       <ul>
                         {trip.activities.map((act) => (
                           <li key={act._id}>
-                            {act.name} - {act.description} on {new Date(act.date).toLocaleDateString()} at {act.time}
+                            {act.name} — {act.description} on {new Date(act.date).toLocaleDateString()} at {act.time}
                           </li>
                         ))}
                       </ul>
